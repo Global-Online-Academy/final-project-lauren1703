@@ -24,9 +24,10 @@ data[columns_to_impute.columns] = imputer.fit_transform(columns_to_impute)
 data = pd.get_dummies(data, columns=['Public or private'])
 data = data.drop('Public or private_public', axis=1)
 
+data['Public or private_private'] = data['Public or private_private'].astype(int)
+
 print("First 5 colleges in the data table:")
 print(data.head())
-
 scaler = StandardScaler()
 data_scaled = scaler.fit_transform(data[['Global rank','Year founded','Acceptance Rate', 'Average SAT Score',
                                          'Average ACT Score','High School GPA',
@@ -89,19 +90,56 @@ coeff_df = pd.DataFrame({
                 'Citations per publication','Percent of tenured faculty','Public or private_private'],
 })
 
-source = ColumnDataSource(coeff_df)
-p = figure(x_range=coeff_df['factors'], title="Regression Coefficients", toolbar_location=None, tools="")
-p.vbar(x='factors', top='weights', width=0.9, source=source, legend_field="factors")
-p.xgrid.grid_line_color = None
-p.y_range.start = min(coeff_df['weights']) - 1
-p.y_range.end = max(coeff_df['weights']) + 1
+source2 = ColumnDataSource(coeff_df)
+p2 = figure(x_range=coeff_df['factors'], title="Regression Coefficients (weights of each factor)", toolbar_location=None, tools="")
+p2.vbar(x='factors', top='weights', width=0.9, source=source2, legend_field="factors")
+p2.xgrid.grid_line_color = None
+p2.y_range.start = min(coeff_df['weights']) - 1
+p2.y_range.end = max(coeff_df['weights']) + 1
 hover2 = HoverTool()
 hover2.tooltips = [
     ("Factor", "@labels"),
     ("Value", "@weights")
 ]
-p.add_tools(hover2)
-p.legend.visible = False
+p2.add_tools(hover2)
+p2.legend.visible = False
 
-show(p)
+show(p2)
 
+results_summary = model.summary2().tables[1]
+
+# Filter factors with p-values less than 0.05
+significant_factors = results_summary[results_summary['P>|t|'] < 0.1]
+
+labels = {"const":"Constant","x1": 'Global rank',"x2":'Year founded',"x3":'Acceptance Rate', "x4":'Average SAT Score',
+          "x5":'Average ACT Score',"x6":'High School GPA',
+          "x7":'Tuition costs',"x8":'Average Financial Aid',"x9":'Endowment size per student (in millions)',
+          "x10":'# of undergraduate majors',"x11":'Undergraduate enrollment',"x12":'Graduate enrollment',
+          "x13":'Graduation rate',"x14":'Average starting salaries',
+          "x15":'Student-to-faculty ratio',"x16":'Bibliometric rank',"x17":'# of research papers published per faculty',
+          "x18":'Citations per publication',"x19":'Percent of tenured faculty',"x20":'Public or private_private'}
+factor_names = []
+for f in significant_factors.index:
+  factor_names.append(labels[f])
+
+sig_df = pd.DataFrame({
+    'factors': significant_factors.index,
+    'weights': significant_factors['Coef.'],
+    'labels': factor_names
+})
+
+source3 = ColumnDataSource(sig_df)
+p3 = figure(x_range=sig_df['factors'], title="Statistically Significant Regression Coefficients (weights of each factor with p-val < 0.1)", toolbar_location=None, tools="")
+p3.vbar(x='factors', top='weights', width=0.9, source=source3, legend_field="factors")
+p3.xgrid.grid_line_color = None
+p3.y_range.start = min(coeff_df['weights']) - 1
+p3.y_range.end = max(coeff_df['weights']) + 1
+hover3 = HoverTool()
+hover3.tooltips = [
+    ("Factor", "@labels"),
+    ("Value", "@weights")
+]
+p3.add_tools(hover3)
+p3.legend.visible = False
+
+show(p3)
