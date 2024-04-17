@@ -77,7 +77,6 @@ p.add_tools(hover)
 show(p)
 
 coefficients = model.params
-print(coefficients)
 coeff_df = pd.DataFrame({
     'factors': coefficients.index,
     'weights': coefficients.values,
