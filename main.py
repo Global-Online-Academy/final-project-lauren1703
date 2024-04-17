@@ -6,7 +6,7 @@ from sklearn.impute import SimpleImputer
 from bokeh.models import ColumnDataSource, HoverTool
 from bokeh.transform import dodge
 
-output_notebook() 
+output_notebook()
 
 data = pd.read_csv('Final Project Data - Sheet1.csv')
 
@@ -28,7 +28,7 @@ print("First 5 colleges in the data table:")
 print(data.head())
 
 scaler = StandardScaler()
-data_scaled = scaler.fit_transform(data[['Global rank','Acceptance Rate', 'Average SAT Score', 
+data_scaled = scaler.fit_transform(data[['Global rank','Year founded','Acceptance Rate', 'Average SAT Score',
                                          'Average ACT Score','High School GPA',
                           'Tuition costs','Average Financial Aid','Endowment size per student (in millions)','# of undergraduate majors',
                           'Undergraduate enrollment','Graduate enrollment',
@@ -77,10 +77,11 @@ p.add_tools(hover)
 show(p)
 
 coefficients = model.params
+print(coefficients)
 coeff_df = pd.DataFrame({
     'factors': coefficients.index,
     'weights': coefficients.values,
-    'labels': ['Constant','Global rank','Acceptance Rate', 'Average SAT Score', 
+    'labels': ['Constant','Global rank','Year founded','Acceptance Rate', 'Average SAT Score',
                 'Average ACT Score','High School GPA',
                 'Tuition costs','Average Financial Aid','Endowment size per student (in millions)','# of undergraduate majors',
                 'Undergraduate enrollment','Graduate enrollment',
@@ -93,14 +94,15 @@ source = ColumnDataSource(coeff_df)
 p = figure(x_range=coeff_df['factors'], title="Regression Coefficients", toolbar_location=None, tools="")
 p.vbar(x='factors', top='weights', width=0.9, source=source, legend_field="factors")
 p.xgrid.grid_line_color = None
-p.y_range.start = -30
-p.y_range.end = max(coeff_df['weights']) + 1  
+p.y_range.start = min(coeff_df['weights']) - 1
+p.y_range.end = max(coeff_df['weights']) + 1
 hover2 = HoverTool()
 hover2.tooltips = [
-    ("Factor", "@labels"),  
-    ("Value", "@weights")     
+    ("Factor", "@labels"),
+    ("Value", "@weights")
 ]
 p.add_tools(hover2)
 p.legend.visible = False
 
 show(p)
+
