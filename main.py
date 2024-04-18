@@ -12,11 +12,10 @@ data = pd.read_csv('Final Project Data - Sheet1.csv')
 
 # Create imputer object with a mean filling strategy
 imputer = SimpleImputer(strategy='mean')
-columns_to_impute = data[['Global rank','Average SAT Score','Average ACT Score','High School GPA',
+columns_to_impute = data[['Global rank','Average SAT Score',
                           'Tuition costs','Average Financial Aid','Endowment size per student (in millions)','# of undergraduate majors',
-                          'Undergraduate enrollment','Graduate enrollment',
-                          'Graduation rate','Average starting salaries',
-                          'Student-to-faculty ratio','Bibliometric rank','# of research papers published per faculty',
+                          'Undergraduate enrollment','Graduation rate','Average starting salaries',
+                          'Student-to-faculty ratio','Bibliometric rank',
                           'Citations per publication','Percent of tenured faculty']]
 data[columns_to_impute.columns] = imputer.fit_transform(columns_to_impute)
 
@@ -30,11 +29,9 @@ print("First 5 colleges in the data table:")
 print(data.head())
 scaler = StandardScaler()
 data_scaled = scaler.fit_transform(data[['Global rank','Year founded','Acceptance Rate', 'Average SAT Score',
-                                         'Average ACT Score','High School GPA',
                           'Tuition costs','Average Financial Aid','Endowment size per student (in millions)','# of undergraduate majors',
-                          'Undergraduate enrollment','Graduate enrollment',
-                          'Graduation rate','Average starting salaries',
-                          'Student-to-faculty ratio','Bibliometric rank','# of research papers published per faculty',
+                          'Undergraduate enrollment','Graduation rate','Average starting salaries',
+                          'Student-to-faculty ratio','Bibliometric rank',
                           'Citations per publication','Percent of tenured faculty','Public or private_private']])
 
 X = sm.add_constant(data_scaled)  # Independent variables
@@ -82,12 +79,10 @@ coeff_df = pd.DataFrame({
     'factors': coefficients.index,
     'weights': coefficients.values,
     'labels': ['Constant','Global rank','Year founded','Acceptance Rate', 'Average SAT Score',
-                'Average ACT Score','High School GPA',
                 'Tuition costs','Average Financial Aid','Endowment size per student (in millions)','# of undergraduate majors',
-                'Undergraduate enrollment','Graduate enrollment',
-                'Graduation rate','Average starting salaries',
-                'Student-to-faculty ratio','Bibliometric rank','# of research papers published per faculty',
-                'Citations per publication','Percent of tenured faculty','Public or private_private'],
+                'Undergraduate enrollment','Graduation rate','Average starting salaries',
+                'Student-to-faculty ratio','Bibliometric rank',
+                'Citations per publication','Percent of tenured faculty','Private rather than public'],
 })
 
 source2 = ColumnDataSource(coeff_df)
@@ -109,15 +104,14 @@ show(p2)
 results_summary = model.summary2().tables[1]
 
 # Filter factors with p-values less than 0.05
-significant_factors = results_summary[results_summary['P>|t|'] < 0.1]
+significant_factors = results_summary[results_summary['P>|t|'] < 0.2]
 
 labels = {"const":"Constant","x1": 'Global rank',"x2":'Year founded',"x3":'Acceptance Rate', "x4":'Average SAT Score',
-          "x5":'Average ACT Score',"x6":'High School GPA',
-          "x7":'Tuition costs',"x8":'Average Financial Aid',"x9":'Endowment size per student (in millions)',
-          "x10":'# of undergraduate majors',"x11":'Undergraduate enrollment',"x12":'Graduate enrollment',
-          "x13":'Graduation rate',"x14":'Average starting salaries',
-          "x15":'Student-to-faculty ratio',"x16":'Bibliometric rank',"x17":'# of research papers published per faculty',
-          "x18":'Citations per publication',"x19":'Percent of tenured faculty',"x20":'Public or private_private'}
+          "x5":'Tuition costs',"x6":'Average Financial Aid',"x7":'Endowment size per student (in millions)',
+          "x8":'# of undergraduate majors',"x9":'Undergraduate enrollment',
+          "x10":'Graduation rate',"x11":'Average starting salaries',
+          "x12":'Student-to-faculty ratio',"x13":'Bibliometric rank',
+          "x14":'Citations per publication',"x15":'Percent of tenured faculty',"x16":'Private rather than public'}
 factor_names = []
 for f in significant_factors.index:
   factor_names.append(labels[f])
@@ -129,7 +123,7 @@ sig_df = pd.DataFrame({
 })
 
 source3 = ColumnDataSource(sig_df)
-p3 = figure(x_range=sig_df['factors'], title="Statistically Significant Regression Coefficients (weights of each factor with p-val < 0.1)", toolbar_location=None, tools="")
+p3 = figure(x_range=sig_df['factors'], title="Statistically Significant Regression Coefficients (weights of each factor with p-val < 0.2)", toolbar_location=None, tools="")
 p3.vbar(x='factors', top='weights', width=0.9, source=source3, legend_field="factors")
 p3.xgrid.grid_line_color = None
 p3.y_range.start = min(coeff_df['weights']) - 1
